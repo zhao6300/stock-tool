@@ -1,0 +1,4 @@
+__pycache__/
+*.py[cod]
+ai_market_data/
+.DS_Store
