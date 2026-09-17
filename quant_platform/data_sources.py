@@ -44,7 +44,17 @@ def parse_date_range(
     return default_range(end_date, days)
 
 
-def resilient_get(session: requests.Session, url: str, params: dict[str, Any], retries: int = 3):
+def resilient_get(
+    session: requests.Session,
+    url: str,
+    params: dict[str, Any],
+    retries: int = 3,
+    retry_backoff_seconds: float = 0.25,
+):
+    if retries <= 0:
+        raise ValueError("retries must be positive")
+    if retry_backoff_seconds < 0:
+        raise ValueError("retry_backoff_seconds must be non-negative")
     last_error: Exception | None = None
     for attempt in range(retries):
         try:
@@ -53,8 +63,8 @@ def resilient_get(session: requests.Session, url: str, params: dict[str, Any], r
             return response
         except requests.RequestException as error:
             last_error = error
-            if attempt == retries - 1:
-                break
+            if attempt < retries - 1:
+                time.sleep(retry_backoff_seconds * (2**attempt))
     if last_error is not None:
         raise RuntimeError(f"Request failed: {url}") from last_error
     raise RuntimeError(f"Request loop exited unexpectedly: {url}")

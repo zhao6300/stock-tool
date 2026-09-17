@@ -1,6 +1,5 @@
 import unittest
-from unittest.mock import Mock
-
+from unittest.mock import Mock, patch
 import requests
 
 from quant_platform import data_sources
@@ -72,6 +71,18 @@ class DataSourceTests(unittest.TestCase):
 
         self.assertEqual(session.get.call_count, 2)
         self.assertIn("https://example.com", str(context.exception))
+
+    @patch("quant_platform.data_sources.time.sleep")
+    def test_resilient_get_uses_exponential_backoff(self, sleep_mock) -> None:
+        failed_response = Mock()
+        failed_response.raise_for_status.side_effect = requests.ConnectionError("network")
+        session = Mock()
+        session.get.return_value = failed_response
+
+        with self.assertRaises(RuntimeError):
+            resilient_get(session, "https://example.com", {}, retries=3, retry_backoff_seconds=0.25)
+
+        self.assertEqual([call.args[0] for call in sleep_mock.call_args_list], [0.25, 0.5])
 
     def test_fetch_stock_history_maps_qfq_rows(self) -> None:
         payload = {

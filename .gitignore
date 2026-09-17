@@ -4,3 +4,4 @@ ai_market_data/
 .agents/
 .codex/
 .DS_Store
+*.egg-info/

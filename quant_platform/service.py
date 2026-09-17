@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 import requests
+from contextlib import contextmanager
 
 from .analysis import analyze_stock_history
 from .backtest import backtest_ma_cross
@@ -14,6 +16,15 @@ from .data_sources import (
 )
 
 
+@contextmanager
+def _session_or_temporary_session(session: requests.Session | None) -> Iterator[requests.Session]:
+    if session is not None:
+        yield session
+    else:
+        with create_session() as temporary_session:
+            yield temporary_session
+
+
 def get_stock_analysis(
     code: str,
     *,
@@ -22,19 +33,18 @@ def get_stock_analysis(
     days: int = 365,
     session: requests.Session | None = None,
 ) -> dict[str, object]:
-    if session is None:
-        session = create_session()
-    stock_data = fetch_stock_history(
-        session=session,
-        raw_code=code,
-        end_date=end_date,
-        days=days,
-        start_date=start_date,
-    )
-    return {
-        "stock": stock_data,
-        "analysis": analyze_stock_history(stock_data["history"], stock_data["symbol"]),
-    }
+    with _session_or_temporary_session(session) as active_session:
+        stock_data = fetch_stock_history(
+            session=active_session,
+            raw_code=code,
+            end_date=end_date,
+            days=days,
+            start_date=start_date,
+        )
+        return {
+            "stock": stock_data,
+            "analysis": analyze_stock_history(stock_data["history"], stock_data["symbol"]),
+        }
 
 
 def get_sector_snapshot(
@@ -42,9 +52,8 @@ def get_sector_snapshot(
     *,
     session: requests.Session | None = None,
 ) -> dict[str, object]:
-    if session is None:
-        session = create_session()
-    return fetch_sector_snapshot(session, name)
+    with _session_or_temporary_session(session) as active_session:
+        return fetch_sector_snapshot(active_session, name)
 
 
 def run_stock_backtest(
@@ -59,22 +68,21 @@ def run_stock_backtest(
     transaction_cost_rate: float = 0.0,
     session: requests.Session | None = None,
 ) -> dict[str, object]:
-    if session is None:
-        session = create_session()
-    stock_data = fetch_stock_history(
-        session=session,
-        raw_code=code,
-        end_date=end_date,
-        days=days,
-        start_date=start_date,
-    )
-    return {
-        "stock": stock_data,
-        "backtest": backtest_ma_cross(
-            stock_data["history"],
-            fast=fast,
-            slow=slow,
-            initial_capital=initial_capital,
-            transaction_cost_rate=transaction_cost_rate,
-        ),
-    }
+    with _session_or_temporary_session(session) as active_session:
+        stock_data = fetch_stock_history(
+            session=active_session,
+            raw_code=code,
+            end_date=end_date,
+            days=days,
+            start_date=start_date,
+        )
+        return {
+            "stock": stock_data,
+            "backtest": backtest_ma_cross(
+                stock_data["history"],
+                fast=fast,
+                slow=slow,
+                initial_capital=initial_capital,
+                transaction_cost_rate=transaction_cost_rate,
+            ),
+        }
