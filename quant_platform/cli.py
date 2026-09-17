@@ -8,7 +8,7 @@ from typing import Any
 
 from .screening import rank_members
 from .service import get_sector_snapshot, get_stock_analysis, run_stock_backtest
-from .data_sources import DEFAULT_SECTORS
+from .data_sources import DEFAULT_SECTORS, create_session
 
 
 def print_json(value: Any) -> None:
@@ -16,12 +16,14 @@ def print_json(value: Any) -> None:
 
 
 def run_stock(args: argparse.Namespace) -> None:
+    session = create_session()
     for code in args.code:
         result = get_stock_analysis(
             code,
             start_date=args.start,
             end_date=args.end,
             days=args.days,
+            session=session,
         )
         if args.format == "json":
             print_json(result)

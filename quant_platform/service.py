@@ -20,11 +20,13 @@ def get_stock_analysis(
     start_date: str | None = None,
     end_date: str | None = None,
     days: int = 365,
+    session: requests.Session | None = None,
 ) -> dict[str, object]:
-    session = create_session()
+    if session is None:
+        session = create_session()
     stock_data = fetch_stock_history(
-        session,
-        code,
+        session=session,
+        raw_code=code,
         end_date=end_date,
         days=days,
         start_date=start_date,
@@ -53,8 +55,8 @@ def run_stock_backtest(
 ) -> dict[str, object]:
     session = create_session()
     stock_data = fetch_stock_history(
-        session,
-        code,
+        session=session,
+        raw_code=code,
         end_date=end_date,
         days=days,
         start_date=start_date,

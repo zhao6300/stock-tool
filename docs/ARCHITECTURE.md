@@ -45,6 +45,8 @@ Reusable primitives include:
 - `quant_platform/service.py` is the orchestration boundary for future API and scheduler integration.
 
 `quant_platform/cli.py` only parses arguments and displays results. It does not contain financial calculations or network logic.
+
+`service.py` accepts an existing HTTP session, so batch requests reuse connection pools instead of rebuilding transport state for every symbol.
 ## Pure math layer
 
 `quant_platform/metrics.py` uses only pure functions so metrics are deterministic and easy to test.
