@@ -10,5 +10,8 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = ["requests>=2.28.0"]
 
+[project.scripts]
+quant-platform = "quant_platform.cli:main"
+
 [tool.setuptools]
 packages = ["quant_platform"]

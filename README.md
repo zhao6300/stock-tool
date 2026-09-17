@@ -75,6 +75,12 @@ python3 -m quant_platform backtest 600519 --fast 20 --slow 60 --cost 0.0002
 ```bash
 python3 -m unittest discover -s tests -v
 ```
+
+项目安装后也可以直接使用：
+
+```bash
+quant-platform --help
+```
 ## 单只股票历史分析
 
 ```bash
