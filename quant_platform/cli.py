@@ -67,6 +67,7 @@ def run_sector(args: argparse.Namespace) -> None:
 
 
 def run_backtest(args: argparse.Namespace) -> None:
+    session = create_session()
     result = run_stock_backtest(
         args.code,
         start_date=args.start,
@@ -74,10 +75,10 @@ def run_backtest(args: argparse.Namespace) -> None:
         days=args.days,
         fast=args.fast,
         slow=args.slow,
-    initial_capital=args.capital,
-    transaction_cost_rate=args.cost,
-    session=session,
-)
+        initial_capital=args.capital,
+        transaction_cost_rate=args.cost,
+        session=session,
+    )
     if args.format == "json":
         print_json(result)
     else:
