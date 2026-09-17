@@ -20,6 +20,21 @@ class BacktestTests(unittest.TestCase):
         self.assertAlmostEqual(result["total_return"], 0.0)
         self.assertEqual(result["trade_count"], 0)
 
+    def test_backtest_includes_buy_and_hold_benchmark(self) -> None:
+        bars = [{"close": price} for price in (10.0, 11.0, 12.0)]
+        result = backtest_ma_cross(
+            bars,
+            fast=2,
+            slow=3,
+            initial_capital=1000.0,
+        )
+
+        self.assertAlmostEqual(result["benchmark"]["total_return"], 0.2)
+        self.assertIn("annualized_volatility", result["benchmark"])
+        self.assertIn("sharpe_ratio", result["benchmark"])
+        self.assertIn("sortino_ratio", result["benchmark"])
+        self.assertIn("max_drawdown", result["benchmark"])
+
     def test_moving_average_crossover_positions(self) -> None:
         closes = [float(value) for value in range(1, 11)]
         positions = moving_average_crossover_positions(closes, fast=2, slow=5)

@@ -9,6 +9,14 @@ from .indicators import simple_moving_average
 from .metrics import annualized_volatility, returns, maximum_drawdown, sharpe_ratio, sortino_ratio
 
 
+def _annualized_return(total_return: float, periods: int) -> float:
+    if periods <= 0 or total_return <= -1.0:
+        if periods <= 0:
+            return 0.0
+        return -1.0
+    return (1.0 + total_return) ** (252.0 / periods) - 1.0
+
+
 @dataclass(frozen=True)
 class SignalRule:
     fast: int
@@ -106,11 +114,9 @@ def backtest_ma_cross(
 
     strategy_returns = returns(equity_values)
     total_return = equity_values[-1] / initial_capital - 1
-    annualized_return_rate = (
-        (equity_values[-1] / initial_capital) ** (252 / len(strategy_returns)) - 1
-        if len(strategy_returns) > 0
-        else 0.0
-    )
+    annualized_return_rate = _annualized_return(total_return, len(strategy_returns))
+    benchmark_returns = returns(closes)
+    benchmark_total_return = closes[-1] / closes[0] - 1 if closes[0] > 0 else 0.0
     trade_count = sum(
         1 for index in range(1, len(positions)) if positions[index] != positions[index - 1]
     )
@@ -127,4 +133,15 @@ def backtest_ma_cross(
         "trade_count": trade_count,
         "positions": positions,
         "equity_curve": equity_values,
+        "benchmark": {
+            "total_return": benchmark_total_return,
+            "annualized_return": _annualized_return(
+                benchmark_total_return,
+                len(benchmark_returns),
+            ),
+            "annualized_volatility": annualized_volatility(benchmark_returns),
+            "sharpe_ratio": sharpe_ratio(benchmark_returns),
+            "sortino_ratio": sortino_ratio(benchmark_returns),
+            "max_drawdown": maximum_drawdown(closes),
+        },
     }

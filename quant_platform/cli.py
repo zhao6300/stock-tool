@@ -95,6 +95,8 @@ def run_backtest(args: argparse.Namespace) -> None:
         print(f"max_drawdown={backtest['max_drawdown']:.2%}")
         print(f"transaction_costs={backtest['transaction_costs']:.2f}")
         print(f"trade_count={backtest['trade_count']}")
+        print(f"buy_and_hold_return={backtest['benchmark']['total_return']:.2%}")
+        print(f"strategy_advantage={backtest['total_return'] - backtest['benchmark']['total_return']:+.2%}")
 
 
 def build_parser() -> argparse.ArgumentParser:

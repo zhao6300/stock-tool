@@ -68,6 +68,8 @@ python3 -m quant_platform backtest 600519 --days 180
 python3 -m quant_platform backtest 600519 --fast 20 --slow 60 --cost 0.0002
 ```
 
+回测结果会同时展示策略表现和买入持有基准，便于判断策略是否优于简单持有。
+
 ## 测试
 
 ```bash

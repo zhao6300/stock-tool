@@ -39,10 +39,13 @@ class CliTests(unittest.TestCase):
                 "sharpe_ratio": 0.2,
                 "sortino_ratio": 0.3,
                 "max_drawdown": -0.01,
-                "transaction_costs": 0.0,
-                "trade_count": 1,
+            "transaction_costs": 0.0,
+            "trade_count": 1,
+            "benchmark": {
+                "total_return": 0.0,
             },
-        }
+        },
+    }
         run_stock_backtest_mock.return_value = result
         parser = build_parser()
         args = parser.parse_args(["backtest", "600519"])
