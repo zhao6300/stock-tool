@@ -8,6 +8,7 @@ from contextlib import contextmanager
 
 from .analysis import analyze_stock_history
 from .backtest import backtest_ma_cross
+from .screening import rank_members
 from .data_sources import (
     DEFAULT_SECTORS,
     create_session,
@@ -54,6 +55,27 @@ def get_sector_snapshot(
 ) -> dict[str, object]:
     with _session_or_temporary_session(session) as active_session:
         return fetch_sector_snapshot(active_session, name)
+
+
+def get_sector_screen(
+    name: str,
+    *,
+    limit: int = 10,
+    descending: bool = True,
+    session: requests.Session | None = None,
+) -> dict[str, object]:
+    with _session_or_temporary_session(session) as active_session:
+        snapshot = fetch_sector_snapshot(active_session, name)
+        members = rank_members(
+            snapshot["members"],
+            limit=limit,
+            descending=descending,
+        )
+        return {
+            "sector": snapshot["sector"],
+            "member_count": len(snapshot["members"]),
+            "members": members,
+        }
 
 
 def run_stock_backtest(

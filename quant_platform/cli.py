@@ -6,8 +6,7 @@ import argparse
 import json
 from typing import Any
 
-from .screening import rank_members
-from .service import get_sector_snapshot, get_stock_analysis, run_stock_backtest
+from .service import get_sector_screen, get_stock_analysis, run_stock_backtest
 from .data_sources import DEFAULT_SECTORS, create_session
 
 
@@ -46,13 +45,7 @@ def run_stock(args: argparse.Namespace) -> None:
 def run_sector(args: argparse.Namespace) -> None:
     session = create_session()
     for name in args.names:
-        snapshot = get_sector_snapshot(name, session=session)
-        members = rank_members(snapshot["members"], limit=args.top)
-        payload = {
-            "sector": snapshot["sector"],
-            "member_count": len(snapshot["members"]),
-            "movers": members,
-        }
+        payload = get_sector_screen(name, limit=args.top, session=session)
         if args.format == "json":
             print_json(payload)
         else:
@@ -62,7 +55,7 @@ def run_sector(args: argparse.Namespace) -> None:
             print(f"index={quote.get('f43')}")
             print(f"change_percent={quote.get('f170')}")
             print(f"member_count={payload['member_count']}")
-            for member in members:
+            for member in payload["members"]:
                 print(f"{member['stock_code']} {member['stock_name']} {member['change_percent']}")
 
 
