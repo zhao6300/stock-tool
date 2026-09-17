@@ -37,8 +37,13 @@ def get_stock_analysis(
     }
 
 
-def get_sector_snapshot(name: str) -> dict[str, object]:
-    session = create_session()
+def get_sector_snapshot(
+    name: str,
+    *,
+    session: requests.Session | None = None,
+) -> dict[str, object]:
+    if session is None:
+        session = create_session()
     return fetch_sector_snapshot(session, name)
 
 
@@ -52,8 +57,10 @@ def run_stock_backtest(
     slow: int = 60,
     initial_capital: float = 100_000.0,
     transaction_cost_rate: float = 0.0,
+    session: requests.Session | None = None,
 ) -> dict[str, object]:
-    session = create_session()
+    if session is None:
+        session = create_session()
     stock_data = fetch_stock_history(
         session=session,
         raw_code=code,

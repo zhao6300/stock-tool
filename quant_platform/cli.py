@@ -44,8 +44,9 @@ def run_stock(args: argparse.Namespace) -> None:
 
 
 def run_sector(args: argparse.Namespace) -> None:
+    session = create_session()
     for name in args.names:
-        snapshot = get_sector_snapshot(name)
+        snapshot = get_sector_snapshot(name, session=session)
         members = rank_members(snapshot["members"], limit=args.top)
         payload = {
             "sector": snapshot["sector"],
@@ -73,9 +74,10 @@ def run_backtest(args: argparse.Namespace) -> None:
         days=args.days,
         fast=args.fast,
         slow=args.slow,
-        initial_capital=args.capital,
-        transaction_cost_rate=args.cost,
-    )
+    initial_capital=args.capital,
+    transaction_cost_rate=args.cost,
+    session=session,
+)
     if args.format == "json":
         print_json(result)
     else:
