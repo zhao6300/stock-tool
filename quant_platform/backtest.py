@@ -61,35 +61,25 @@ def moving_average_crossover_positions(
     return positions
 
 
-def apply_transaction_costs(
-    equity_values: list[float],
-    transaction_costs: Sequence[float],
-) -> list[float]:
-    result: list[float] = []
-    for equity, cost in zip(equity_values, transaction_costs):
-        result.append(equity - cost)
-    return result
-
-
-def backtest_ma_cross(
+def backtest_position_strategy(
     bars: Sequence[dict[str, float | str]],
     *,
-    fast: int = 20,
-    slow: int = 60,
+    positions: Sequence[int],
     initial_capital: float = 100_000.0,
     transaction_cost_rate: float = 0.0,
 ) -> dict[str, object]:
     if not bars:
         raise ValueError("No data.")
-    if fast <= 0 or slow <= fast:
-        raise ValueError("slow must be greater than fast")
+    if not positions:
+        raise ValueError("No positions.")
+    if len(positions) != len(bars):
+        raise ValueError("positions and bars must have the same length")
     if initial_capital <= 0:
         raise ValueError("initial capital must be positive")
     if transaction_cost_rate < 0:
         raise ValueError("transaction cost rate must be non-negative")
 
     closes = [float(bar["close"]) for bar in bars]
-    positions = moving_average_crossover_positions(closes, fast, slow)
     equity_values = [initial_capital]
     transaction_costs: list[float] = [0.0]
     current_shares = 0.0
@@ -102,7 +92,7 @@ def backtest_ma_cross(
         if current_position > previous_position:
             shares_to_buy = cash / closes[index]
             cost = shares_to_buy * closes[index] * transaction_cost_rate
-            cash -= cost
+            cash -= shares_to_buy * closes[index]
             current_shares += shares_to_buy
         elif current_position < previous_position:
             proceeds = current_shares * closes[index]
@@ -145,3 +135,25 @@ def backtest_ma_cross(
             "max_drawdown": maximum_drawdown(closes),
         },
     }
+
+
+def backtest_ma_cross(
+    bars: Sequence[dict[str, float | str]],
+    *,
+    fast: int = 20,
+    slow: int = 60,
+    initial_capital: float = 100_000.0,
+    transaction_cost_rate: float = 0.0,
+) -> dict[str, object]:
+    if not bars:
+        raise ValueError("No data.")
+    if fast <= 0 or slow <= fast:
+        raise ValueError("slow must be greater than fast")
+    closes = [float(bar["close"]) for bar in bars]
+    positions = moving_average_crossover_positions(closes, fast, slow)
+    return backtest_position_strategy(
+        bars,
+        positions=positions,
+        initial_capital=initial_capital,
+        transaction_cost_rate=transaction_cost_rate,
+    )

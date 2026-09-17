@@ -2,6 +2,7 @@ import unittest
 
 from quant_platform.backtest import (
     backtest_ma_cross,
+    backtest_position_strategy,
     moving_average_crossover_positions,
     moving_average_crossover_signals,
 )
@@ -34,6 +35,21 @@ class BacktestTests(unittest.TestCase):
         self.assertIn("sharpe_ratio", result["benchmark"])
         self.assertIn("sortino_ratio", result["benchmark"])
         self.assertIn("max_drawdown", result["benchmark"])
+
+    def test_backtest_position_strategy(self) -> None:
+        bars = [{"close": price} for price in (10.0, 11.0, 12.0)]
+        positions = [0, 1, 0]
+
+        result = backtest_position_strategy(
+            bars,
+            positions=positions,
+            initial_capital=1000.0,
+            transaction_cost_rate=0.0,
+        )
+
+        self.assertEqual(result["trade_count"], 2)
+        self.assertGreater(result["total_return"], 0.0)
+        self.assertAlmostEqual(result["final_equity"], 1000 * 12 / 11)
 
     def test_moving_average_crossover_positions(self) -> None:
         closes = [float(value) for value in range(1, 11)]
